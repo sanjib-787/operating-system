@@ -1,20 +1,26 @@
 #include<stdio.h>
-#include<stdlib.h>
 #include<unistd.h>
-int main()
-{
-	int pipefd[2];
+#include<stdlib.h>
+int main(void){
+	pid_t pid;
 	int status;
-	char msg[2][10]={"hello","sanjib"};
-	char readmsg[10];
-	status = pipe(pipefd);
-	if(status == -1) {
-		printf("pipe not created \n");
+	int pipefds[2];
+	char *wmsg, *rmsg;
+	wmsg = (char *)malloc(sizeof(wmsg) * 10);
+	rmsg = (char *)malloc(sizeof(wmsg) * 10);
+	status = pipe(pipefds);
+	pid = fork();
+	if(pid == -1) {
+		printf("fork not created\n");
 		exit(EXIT_FAILURE);
+	} else if( pid == 0 ) {
+		printf("enter data from child:\n");
+		fgets(wmsg, 10, stdin);
+		write(pipefds[1], wmsg, 10);
+		close( pipefds [ 1 ]);
+	} else {
+		read(pipefds[0], rmsg, 10);
+		printf("read in parent %s",rmsg);
 	}
-	printf("%s\n",msg[0]);
-	printf("%d\n",sizeof(msg[0]));
-	write(pipefd[1], msg[0], sizeof(msg[0]));
-	read(pipefd[0], readmsg, sizeof(readmsg));
-	printf("%s\n",readmsg);
+
 }
